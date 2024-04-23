@@ -1,1 +1,1 @@
-web: gunicorn gerbo-gui:app
+web: gunicorn -w 4 gerbo-gui:app
