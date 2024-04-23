@@ -1,9 +1,14 @@
+# gerbo-gui.py
 from flask import Flask, request, render_template, flash, redirect, url_for
 from datetime import datetime
 import requests
 import json
 import re
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # load environment variables
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # replace with your secret key
@@ -24,8 +29,8 @@ def index():
         base_url = "https://www.googleapis.com/customsearch/v1"
 
         params = {
-            "key": "AIzaSyCchCL79RIvERFUp-jieQEhmV2U-ZDQXOo",
-            "cx": "d567188f8b80949e9",
+            "key": os.getenv("GOOGLE_API_KEY"),  # replace with environment variable
+            "cx": os.getenv("GOOGLE_CX_KEY"),  # replace with environment variable
             "q": search_term
         }
 
@@ -42,15 +47,15 @@ def index():
                         for item in results['items']:
                             results_list.append(item['link'])
                     else:
-                        flash("No results found.")
+                        flash("No se encontraron resultados.")
                         return redirect(url_for('index'))
 
             except requests.exceptions.HTTPError as err:
                 if response.status_code == 429:
-                    flash("Too many requests. Please enter the websites manually.")
+                    flash("Demasiadas solicitudes. Por favor ingrese los websites manualmente.")
                     return redirect(url_for('manual'))
                 else:
-                    flash(f"HTTP error occurred: {err}")
+                    flash(f"HTTP ocurrió un error: {err}")
                     return redirect(url_for('index'))
 
         sorted_results = sorted(results_list)
@@ -119,6 +124,8 @@ def find_contact_info(url):
             phone = "+1 (" + phone[:3] + ") " + phone[3:6] + "-" + phone[6:]
         phones[i] = phone
 
+    # Remove duplicate emails and phones
+    emails = list(set(emails))
     phones = list(set(phones))
 
     return emails, phones

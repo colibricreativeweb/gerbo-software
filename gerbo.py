@@ -1,18 +1,23 @@
-# old-gerbo.py
+# gerbo.py
 import requests
 from bs4 import BeautifulSoup
 import re
 import json
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Create an empty list to store the results
 results_list = []
 
 # Define the API key and the custom search
-api_key = "AIzaSyCchCL79RIvERFUp-jieQEhmV2U-ZDQXOo"
-cse_id = "d567188f8b80949e9"
+api_key = os.getenv("GOOGLE_API_KEY")
+cse_id = os.getenv("GOOGLE_CX_KEY")
 
 # Ask the user for the search term
-search_term = input("Enter the search term: ")
+search_term = input("Ingrese una búsqueda: ")
 
 # Replace spaces with underscores and remove special characters to create a valid filename
 filename = re.sub('[^A-Za-z0-9]+', '_', search_term)
@@ -45,17 +50,17 @@ for i in range(1, 101, 10):
 
     except requests.exceptions.HTTPError as err:
         if response.status_code == 429:
-            print("Too many requests. Please input the list of websites manually.")
-            results_list = input("Enter the websites separated by spaces: ").split()
+            print("Demasiadas solicitudes. Por favor ingrese los websites de forma manual.")
+            results_list = input("Ingrese los websites separados por espacios: ").split()
             break
         else:
-            print(f"HTTP error occurred: {err}")
+            print(f"HTTP: Ocurrió un error: {err}")
             break
 
     except requests.exceptions.RequestException as err:
-        print(f"Error occurred: {err}")
-        print("Please input the list of websites manually.")
-        results_list = input("Enter the websites separated by spaces: ").split()
+        print(f"Ocurrió un error: {err}")
+        print("Por favor ingrese los websites de forma manual.")
+        results_list = input("Ingrese los websites separados por espacios: ").split()
         break
 
 # Sort the list of results
