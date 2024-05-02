@@ -36,7 +36,7 @@ params = {
 }
 
 # Make multiple requests to the API to get the first 100 results
-for i in range(1, 101, 10):
+for i in range(1, 11, 10):
     params['start'] = i
     try:
         response = requests.get(base_url, params=params)
@@ -45,8 +45,11 @@ for i in range(1, 101, 10):
         # Add the results to the list
         if response.status_code == 200:
             results = json.loads(response.text)
-            for item in results['items']:
-                results_list.append(item['link'])
+            if 'items' in results:
+                for item in results['items']:
+                    results_list.append(item['link'])
+            else:
+                print("No items found in the response.")
 
     except requests.exceptions.HTTPError as err:
         if response.status_code == 429:

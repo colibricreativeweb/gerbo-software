@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Excel File</title>
+</head>
+<body>
+    <h1>Search Excel File</h1>
+    <form method=post action="{{ url_for('search_file', filename=request.args.get('filename')) }}">
+        <input type=text name=search_term placeholder="Enter search term">
+        <input type=submit value=Search>
+    </form>
+</body>
+</html>

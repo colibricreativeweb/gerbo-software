@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Gerbo | Búsqueda manual</title>
+    <title>Gerbo | Manual Search</title>
     <link
       href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
       rel="stylesheet"
@@ -61,11 +61,11 @@
           Gerbo
         </p>
       </a>
-      <h1 class="text-3xl mb-5 text-center text-blue-600">Búsqueda manual</h1>
+      <h1 class="text-3xl mb-5 text-center text-blue-600">Manual Search</h1>
       <form method="POST" class="space-y-5" id="searchForm">
         <div>
           <label for="websites" class="block text-sm font-medium text-gray-700"
-            >Websites (separados por espacios):</label
+            >Websites (separated by space):</label
           >
           <input
             type="text"
@@ -78,7 +78,7 @@
         <input
           id="submitButton"
           type="submit"
-          value="Consultar"
+          value="Search"
           class="w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         />
       </form>
@@ -94,7 +94,7 @@
         .addEventListener("submit", function () {
           var submitButton = document.getElementById("submitButton");
           submitButton.disabled = true;
-          submitButton.value = "Cargando...";
+          submitButton.value = "Loading...";
           submitButton.innerHTML = "⚡" + submitButton.value;
         });
     </script>

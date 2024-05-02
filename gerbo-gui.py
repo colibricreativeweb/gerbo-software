@@ -6,18 +6,56 @@ import json
 import re
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
+from werkzeug.utils import secure_filename
+import pandas as pd
 import os
 
 load_dotenv()  # load environment variables
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # replace with your secret key
+app.config['UPLOAD_FOLDER'] = 'excels'  # replace with your upload folder
+
+@app.route('/upload', methods=['GET', 'POST'])
+def upload_file():
+    if request.method == 'POST':
+        # check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+        file = request.files['file']
+        # if user does not select file, browser also
+        # submit an empty part without filename
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+        if file:
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            return redirect(url_for('search_file',
+                                    filename=filename))
+    return render_template('upload.html')
+
+@app.route('/search', methods=['GET', 'POST'])
+def search_file():
+    if request.method == 'POST':
+        search_term = request.form.get('search_term')
+        filename = request.args.get('filename')
+        df = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        results = df[df.apply(lambda row: row.astype(str).str.contains(search_term).any(), axis=1)]
+        return render_template('ex_results.html', results=results.to_html())
+    return render_template('search.html')
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
         search_term = request.form.get('search_term')
         exclude_sites = request.form.get('exclude_sites')
+
+        # Get the extra parameters from the form data
+        language = request.form.get('language')
+        """ fileType = request.form.get('fileType') """
+        country = request.form.get('country')
 
         filename = re.sub('[^A-Za-z0-9]+', '_', search_term)
 
@@ -33,6 +71,18 @@ def index():
             "cx": os.getenv("GOOGLE_CX_KEY"),  # replace with environment variable
             "q": search_term
         }
+
+        # Add the extra parameters to the params dictionary if they are not None
+        if language:
+            params['lr'] = language
+        """ if fileType:
+            params['fileType'] = fileType """
+        if country:
+            params['gl'] = country
+            
+            # Print the parameters (DELETE AFTER USE)
+        print(f"Sending the following parameters to the API: {params}")
+
 
         results_list = []
         for i in range(1, 21, 10):
