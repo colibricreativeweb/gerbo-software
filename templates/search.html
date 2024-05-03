@@ -53,26 +53,37 @@
             for="search_term"
             >Search term</label
           >
-          <input
+          <textarea
             class="mt-1 block w-full rounded-md border-2 border-blue-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
             type="text"
             name="search_term"
-            placeholder="Search term"
+            placeholder="Separate targets by line breaks"
+            rows="3"
+            cols="30"
             required
-          />
+          ></textarea>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700"
             >Columns to search</label
           >
-          {% for col in cols %}
-          <div>
-            <input class="mt-1" type="checkbox" name="cols" value="{{ col }}" />
-            <label class="ml-2 text-sm text-gray-700" for="{{ col }}"
-              >{{ col }}</label
+          <div class="flex flex-wrap">
+            {% for col in cols %}
+            <div
+              class="flex items-center space-x-2 mb-2 w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5"
             >
+              <input
+                class="mt-1"
+                type="checkbox"
+                name="cols"
+                value="{{ col }}"
+              />
+              <label class="ml-2 text-sm text-gray-700" for="{{ col }}"
+                >{{ col }}</label
+              >
+            </div>
+            {% endfor %}
           </div>
-          {% endfor %}
         </div>
         <input
           id="submitButton"

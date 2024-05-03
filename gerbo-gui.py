@@ -44,7 +44,7 @@ def upload_files():
 def search_files():
     try:
         if request.method == 'POST':
-            search_term = request.form.get('search_term')
+            search_terms = request.form.get('search_term').replace('\r\n', '\n').split('\n')  # split the search term by line breaks
             selected_cols = request.form.getlist('cols')  # get the selected columns
             filenames = request.args.get('filenames', '').split(',')
             filenames = [f for f in filenames if f]  # remove empty strings
@@ -57,7 +57,8 @@ def search_files():
                     df = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                     if selected_cols:  # if any columns were selected
                         df = df[selected_cols]  # select only the selected columns
-                    results = results.append(df[df.apply(lambda row: row.astype(str).str.contains(search_term).any(), axis=1)])
+                    for term in search_terms:  # loop over each search term
+                        results = results.append(df[df.apply(lambda row: row.astype(str).str.contains(term).any(), axis=1)])
                 except Exception as e:
                     flash(f'Error processing file {filename}: {str(e)}')
                     continue
