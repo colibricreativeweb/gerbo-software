@@ -1,10 +1,67 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Search Results</title>
-</head>
-<body>
-    <h1>Search Results</h1>
-    {{ results|safe }}
-</body>
+  <head>
+    <title>Gerbo | Search Results</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/aos@2.3.1/dist/aos.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='images/favicon.ico') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      th,
+      td {
+        text-align: left;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gray-200 min-h-screen flex items-center justify-center"
+    data-aos="fade-in"
+  >
+    <div
+      class="bg-white p-10 rounded-lg shadow-xl w-full sm:w-11/12 md:w-11/12 lg:w-11/12 xl:w-11/12"
+      data-aos="fade-up"
+    >
+      <a href="{{ url_for('index') }}">
+        <img
+          src="{{ url_for('static', filename='images/gerbo.png') }}"
+          alt="Gerbo Logo"
+          class="mx-auto mb-1 h-24 w-auto rounded-full"
+        />
+        <p
+          class="flex mb-3 items-center font-gerbo font-bold text-blue-700 justify-center"
+        >
+          Gerbo
+        </p>
+      </a>
+      <h1 class="text-3xl mb-5 text-center text-blue-600">Search Results</h1>
+      <div
+        class="space-y-5 w-full sm:w-full md:w-full lg:w-full xl:w-full mx-auto overflow-x-auto"
+      >
+        {{ results|safe }}
+      </div>
+      {% include 'footer.html' %}
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.1/dist/aos.js"></script>
+    <script>
+      AOS.init();
+    </script>
+  </body>
 </html>

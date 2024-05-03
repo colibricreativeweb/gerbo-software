@@ -1,5 +1,5 @@
-# Gerbo Software &middot; ![Release Status](https://img.shields.io/badge/release-v1.0.0-green) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-Are you tired of manual data mining tasks? Look no further! Our project provides a robust solution for extracting email addresses and phone numbers using Google’s Custom Search API and Python’s HTMLParser. Whether you’re a penetration tester or a curious learner, this educational app is designed to help you explore data mining techniques.
+# Gerbo Software &middot; ![Release Status](https://img.shields.io/badge/release-v2.0.0-green) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+Are you tired of manual data mining tasks? Look no further! Our project provides a robust solution for extracting email addresses and phone numbers using Google’s Custom Search API and Python’s HTMLParser, also it includes document scraping capabilities. Whether you’re a penetration tester or a curious learner, this educational app is designed to help you explore data mining techniques.
 
 ## :gear: Install & Run
 Just fire up `gerbo.py` if you wanna run on CLI or run `gerbo-gui.py` if you wanna use the shiny Flask version.
@@ -34,6 +34,14 @@ This application is intended solely for educational purposes. We do not endorse 
 ## :star2: Main features
 * **Simple:** It just works.
 * **Awesome:** Like you, you're awesome.
+* **Google API Integration:** Leverages Google's powerful search API for accurate results.
+* **Customizable Search:** Allows optional country and language selection for more targeted searching.
+* **Manual Website Scraping:** Provides the ability to manually scrape websites for information.
+* **Multi-file Support:** Can process multiple Excel files at once.
+* **Selective Search:** Allows users to select specific columns to search.
+* **Unique Column Handling:** Handles duplicate column names across multiple files intelligently.
+* **Session Management:** Remembers your column selection across multiple searches.
+* **Secure:** Uses secure file handling practices to keep your data safe.
 
 ## :scroll: Licensing
 This work is licensed under a [MIT License](LICENSE).

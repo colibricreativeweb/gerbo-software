@@ -7,6 +7,7 @@ import re
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
+from flask import Flask, session
 import pandas as pd
 import os
 
@@ -17,34 +18,55 @@ app.secret_key = 'your_secret_key'  # replace with your secret key
 app.config['UPLOAD_FOLDER'] = 'excels'  # replace with your upload folder
 
 @app.route('/upload', methods=['GET', 'POST'])
-def upload_file():
+def upload_files():
     if request.method == 'POST':
-        # check if the post request has the file part
-        if 'file' not in request.files:
+        if 'files[]' not in request.files:
             flash('No file part')
             return redirect(request.url)
-        file = request.files['file']
-        # if user does not select file, browser also
-        # submit an empty part without filename
-        if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
-        if file:
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return redirect(url_for('search_file',
-                                    filename=filename))
+        files = request.files.getlist('files[]')
+        filenames = []
+        cols = set()  # change this to a set
+        for file in files:
+            if file.filename == '':
+                flash('No selected file')
+                return redirect(request.url)
+            if file:
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                filenames.append(filename)
+                df = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], filename), nrows=0)  # read only the first row
+                cols.update(df.columns.tolist())  # use the update method to add the columns to the set
+        session['cols'] = list(cols)  # convert the set back to a list before storing it in the session
+        return redirect(url_for('search_files', filenames=','.join(filenames)))
     return render_template('upload.html')
 
 @app.route('/search', methods=['GET', 'POST'])
-def search_file():
-    if request.method == 'POST':
-        search_term = request.form.get('search_term')
-        filename = request.args.get('filename')
-        df = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        results = df[df.apply(lambda row: row.astype(str).str.contains(search_term).any(), axis=1)]
-        return render_template('ex_results.html', results=results.to_html())
-    return render_template('search.html')
+def search_files():
+    try:
+        if request.method == 'POST':
+            search_term = request.form.get('search_term')
+            selected_cols = request.form.getlist('cols')  # get the selected columns
+            filenames = request.args.get('filenames', '').split(',')
+            filenames = [f for f in filenames if f]  # remove empty strings
+            if not filenames:
+                flash('No files uploaded')
+                return redirect(url_for('upload_files'))
+            results = pd.DataFrame()
+            for filename in filenames:
+                try:
+                    df = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    if selected_cols:  # if any columns were selected
+                        df = df[selected_cols]  # select only the selected columns
+                    results = results.append(df[df.apply(lambda row: row.astype(str).str.contains(search_term).any(), axis=1)])
+                except Exception as e:
+                    flash(f'Error processing file {filename}: {str(e)}')
+                    continue
+            results.to_excel('search_results.xlsx')  # save the results to an Excel file
+            return render_template('ex_results.html', results=results.to_html(classes='min-w-full divide-y divide-gray-200'))
+        return render_template('search.html', cols=session.get('cols', []))  # pass the column names to the search page
+    except Exception as e:
+        flash(f'Error: {str(e)}')
+        return redirect(url_for('index'))
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
