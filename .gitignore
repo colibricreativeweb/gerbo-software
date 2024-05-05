@@ -25,6 +25,7 @@ dist-ssr
 
 # Dependencies
 /node_modules
+__pycache__
 /.pnp
 .pnp.js
 

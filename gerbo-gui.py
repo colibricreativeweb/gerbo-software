@@ -1,5 +1,5 @@
 # gerbo-gui.py
-from flask import Flask, request, render_template, flash, redirect, url_for
+from flask import Flask, request, render_template, flash, redirect, url_for, session, jsonify
 from datetime import datetime
 import requests
 import json
@@ -7,9 +7,11 @@ import re
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
-from flask import Flask, session
 import pandas as pd
 import os
+import database
+import subprocess
+from datetime import datetime
 
 load_dotenv()  # load environment variables
 
@@ -56,13 +58,37 @@ def search_files():
                 try:
                     df = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                     if selected_cols:  # if any columns were selected
+                        missing_cols = [col for col in selected_cols if col not in df.columns]
+                        if missing_cols:
+                            flash(f'Columns {", ".join(missing_cols)} not found in file {filename}.')
+                            continue
                         df = df[selected_cols]  # select only the selected columns
                     for term in search_terms:  # loop over each search term
-                        results = results.append(df[df.apply(lambda row: row.astype(str).str.contains(term).any(), axis=1)])
+                        if term == "$all":
+                            results = pd.concat([results, df])
+                        else:
+                            results = pd.concat([results, df[df.apply(lambda row: row.astype(str).str.contains(term).any(), axis=1)]])
                 except Exception as e:
                     flash(f'Error processing file {filename}: {str(e)}')
                     continue
-            results.to_excel('search_results.xlsx')  # save the results to an Excel file
+
+            # Get the current date and time
+            now = datetime.now()
+
+            # Format the current date and time as a string
+            now_str = now.strftime('%Y%m%d%H%M%S')
+
+            # Use the current date and time as the Excel file name
+            excel_file_name = f'search_results_{now_str}.xlsx'
+
+            results.to_excel(excel_file_name, index=False)  # save the results to an Excel file
+
+            try:
+                # run database.py after the search results are generated
+                subprocess.run(['python', 'database.py', excel_file_name], check=True)
+            except Exception as e:
+                flash(f'Error running database script: {str(e)}')
+
             return render_template('ex_results.html', results=results.to_html(classes='min-w-full divide-y divide-gray-200'))
         return render_template('search.html', cols=session.get('cols', []))  # pass the column names to the search page
     except Exception as e:
