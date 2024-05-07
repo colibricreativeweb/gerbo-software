@@ -53,7 +53,6 @@ Here are some features we're considering for future releases:
 - [ ] **Database Viewing:** A built-in viewer to explore the generated SQLite database right from the application.
 - [ ] **Database Search:** A search feature that allows users to search for specific data within the generated database.
 - [ ] **Table Filtering:** The ability to filter the data in the generated database by specific criteria.
-- [ ] **Advanced Search Options:** More granular control over the search parameters, such as case sensitivity and regular expression support.
 - [ ] **User Authentication:** Secure user accounts, allowing users to save their search history and preferences.
 - [ ] **API Integration:** The ability to send search results to an external API or receive data from other APIs.
 - [ ] **Data Visualization:** Graphs and charts to visualize the search results and database data.

@@ -7,5 +7,4 @@ pandas
 openpyxl
 flask_session
 werkzeug
-sqlite3
 Jinja2
