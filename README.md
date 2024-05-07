@@ -1,4 +1,4 @@
-# Gerbo Software &middot; ![Release Status](https://img.shields.io/badge/release-v2.0.0-green) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+# Gerbo Software &middot; ![Release Status](https://img.shields.io/badge/release-v2.1.0-green) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 Are you tired of manual data mining tasks? Look no further! Our project provides a robust solution for extracting email addresses and phone numbers using Google’s Custom Search API and Python’s HTMLParser, also it includes document scraping capabilities. Whether you’re a penetration tester or a curious learner, this educational app is designed to help you explore data mining techniques.
 
 ## :gear: Install & Run
@@ -36,10 +36,11 @@ This application is intended solely for educational purposes. We do not endorse 
 * **Awesome:** Like you, you're awesome.
 * **Google API Integration:** Leverages Google's powerful search API for accurate results.
 * **Customizable Search:** Allows optional country and language selection for more targeted searching.
-* **Manual Website Scraping:** Provides the ability to manually scrape websites for information.
-* **Multi-file Support:** Can process multiple Excel files at once.
+* **Exclusion of Words:** Allows users to exclude specific words from the search.
 * **Selective Search:** Allows users to select specific columns to search.
+* **Multi-file Support:** Can process multiple Excel files at once.
 * **Unique Column Handling:** Handles duplicate column names across multiple files intelligently.
+* **Manual Website Scraping:** Provides the ability to manually scrape websites for information.
 * **Session Management:** Remembers your column selection across multiple searches.
 * **Secure:** Uses secure file handling practices to keep your data safe.
 

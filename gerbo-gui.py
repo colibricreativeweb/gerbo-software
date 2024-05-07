@@ -53,6 +53,13 @@ def search_files():
             if not filenames:
                 flash('No files uploaded')
                 return redirect(url_for('upload_files'))
+
+            # Get the checkbox value from the form data
+            exclude_words_checkbox = request.form.get('toggle')
+
+            # Get the exclude words from the form data if the checkbox is checked
+            exclude_words = request.form.get('exclude_words', '').replace('\r\n', '\n').split('\n') if exclude_words_checkbox else []
+
             results = pd.DataFrame()
             for filename in filenames:
                 try:
@@ -68,6 +75,10 @@ def search_files():
                             results = pd.concat([results, df])
                         else:
                             results = pd.concat([results, df[df.apply(lambda row: row.astype(str).str.contains(term).any(), axis=1)]])
+                    # If the exclude words field is not empty, remove the rows that contain any of the exclude words
+                    if exclude_words:
+                        for word in exclude_words:
+                            results = results[~results.apply(lambda row: row.astype(str).str.contains(word).any(), axis=1)]
                 except Exception as e:
                     flash(f'Error processing file {filename}: {str(e)}')
                     continue
@@ -90,7 +101,10 @@ def search_files():
                 flash(f'Error running database script: {str(e)}')
 
             return render_template('ex_results.html', results=results.to_html(classes='min-w-full divide-y divide-gray-200'))
-        return render_template('search.html', cols=session.get('cols', []))  # pass the column names to the search page
+        
+        # Sort the columns before passing them to the template
+        sorted_cols = sorted(session.get('cols', []))
+        return render_template('search.html', cols=sorted_cols)  # pass the sorted column names to the search page
     except Exception as e:
         flash(f'Error: {str(e)}')
         return redirect(url_for('index'))

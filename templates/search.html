@@ -63,6 +63,38 @@
             required
           ></textarea>
         </div>
+        <div
+          class="w-full flex flex-col sm:flex-row items-start sm:items-center justify-start"
+        >
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              name="toggle"
+              id="toggle"
+              class="form-checkbox h-5 w-5 text-blue-600"
+            />
+            <label
+              class="block text-sm font-medium text-gray-700 ml-2"
+              for="toggle"
+              >Exclude words</label
+            >
+          </div>
+          <div id="excludeWords" class="hidden sm:ml-4 mt-2 sm:mt-0">
+            <label
+              class="block text-sm font-medium text-gray-700"
+              for="exclude_words"
+              >Words to exclude</label
+            >
+            <textarea
+              class="mt-1 block w-full rounded-md border-2 border-blue-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              type="text"
+              name="exclude_words"
+              placeholder="Separate words by line breaks"
+              rows="3"
+              cols="30"
+            ></textarea>
+          </div>
+        </div>
         <div>
           <label class="block text-sm font-medium text-gray-700"
             >Columns to search</label
@@ -105,6 +137,23 @@
           submitButton.value = "Loading...";
           submitButton.innerHTML = "⚡" + submitButton.value;
         });
+
+      // Get the toggle switch and the exclude words field
+      var toggle = document.getElementById("toggle");
+      var excludeWords = document.getElementById("excludeWords");
+      var excludeWordsTextarea = excludeWords.querySelector("textarea");
+
+      // Add an event listener to the toggle switch
+      toggle.addEventListener("change", function () {
+        // If the toggle switch is checked, show the exclude words field and make it required, otherwise hide it and remove the required attribute
+        if (toggle.checked) {
+          excludeWords.classList.remove("hidden");
+          excludeWordsTextarea.required = true;
+        } else {
+          excludeWords.classList.add("hidden");
+          excludeWordsTextarea.required = false;
+        }
+      });
     </script>
   </body>
 </html>
