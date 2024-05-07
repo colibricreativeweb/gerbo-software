@@ -1,4 +1,4 @@
-# Gerbo Software &middot; ![Release Status](https://img.shields.io/badge/release-v2.1.0-green) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+# Gerbo Software &middot; ![Release Status](https://img.shields.io/badge/release-v2.2.0-green) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 Are you tired of manual data mining tasks? Look no further! Our project provides a robust solution for extracting email addresses and phone numbers using Google’s Custom Search API and Python’s HTMLParser, also it includes document scraping capabilities. Whether you’re a penetration tester or a curious learner, this educational app is designed to help you explore data mining techniques.
 
 ## :gear: Install & Run
@@ -43,6 +43,21 @@ This application is intended solely for educational purposes. We do not endorse 
 * **Manual Website Scraping:** Provides the ability to manually scrape websites for information.
 * **Session Management:** Remembers your column selection across multiple searches.
 * **Secure:** Uses secure file handling practices to keep your data safe.
+* **Custom Database Naming:** Allows users to provide a custom name for the generated database.
+* **Automated Database Creation:** Automatically creates a SQLite database from the search results.
+
+## :world_map: Roadmap
+
+Here are some features we're considering for future releases:
+
+- [ ] **Database Viewing:** A built-in viewer to explore the generated SQLite database right from the application.
+- [ ] **Database Search:** A search feature that allows users to search for specific data within the generated database.
+- [ ] **Table Filtering:** The ability to filter the data in the generated database by specific criteria.
+- [ ] **Advanced Search Options:** More granular control over the search parameters, such as case sensitivity and regular expression support.
+- [ ] **User Authentication:** Secure user accounts, allowing users to save their search history and preferences.
+- [ ] **API Integration:** The ability to send search results to an external API or receive data from other APIs.
+- [ ] **Data Visualization:** Graphs and charts to visualize the search results and database data.
+- [ ] **Export Options:** More options for exporting the search results, such as CSV, JSON, or direct export to a remote database.
 
 ## :scroll: Licensing
 This work is licensed under a [MIT License](LICENSE).

@@ -5,20 +5,22 @@ import pandas as pd
 import datetime
 import sys
 
-def process_data(excel_file):
+def process_data(excel_file, database_name=None):
     try:
         # Ensure the 'databases' directory exists, if not, create it
         if not os.path.exists('databases'):
             os.makedirs('databases')
 
-        # Get the current date and time
-        now = datetime.datetime.now()
+        # If no custom database name is provided, use the current date and time
+        if not database_name:
+            # Get the current date and time
+            now = datetime.datetime.now()
 
-        # Format the current date and time as a string
-        now_str = now.strftime('%Y%m%d%H%M%S')
+            # Format the current date and time as a string
+            now_str = now.strftime('%Y%m%d%H%M%S')
 
-        # Use the current date and time as the database name
-        database_name = f'database_{now_str}'
+            # Use the current date and time as the database name
+            database_name = f'database_{now_str}'
 
         # Connect to the database (it will be created if it doesn't exist)
         conn = sqlite3.connect(f'databases/{database_name}.db')
@@ -63,7 +65,11 @@ def process_data(excel_file):
         print(f"An error occurred while processing the data: {e}")
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:  # check if a command-line argument was provided
+    if len(sys.argv) > 2:  # check if two command-line arguments were provided
+        excel_file = sys.argv[1]  # use the first command-line argument as the Excel file to process
+        database_name = sys.argv[2]  # use the second command-line argument as the database name
+        process_data(excel_file, database_name)
+    elif len(sys.argv) > 1:  # check if a command-line argument was provided
         excel_file = sys.argv[1]  # use the first command-line argument as the Excel file to process
         process_data(excel_file)
     else:

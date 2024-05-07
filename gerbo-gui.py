@@ -60,6 +60,12 @@ def search_files():
             # Get the exclude words from the form data if the checkbox is checked
             exclude_words = request.form.get('exclude_words', '').replace('\r\n', '\n').split('\n') if exclude_words_checkbox else []
 
+            # Get the custom name checkbox value from the form data
+            custom_name_checkbox = request.form.get('customNameToggle')
+
+            # Get the custom name from the form data if the checkbox is checked
+            custom_name = request.form.get('custom_name', '') if custom_name_checkbox else None
+
             results = pd.DataFrame()
             for filename in filenames:
                 try:
@@ -89,14 +95,14 @@ def search_files():
             # Format the current date and time as a string
             now_str = now.strftime('%Y%m%d%H%M%S')
 
-            # Use the current date and time as the Excel file name
-            excel_file_name = f'search_results_{now_str}.xlsx'
+            # Use the custom name if provided, else use the current date and time as the Excel file name
+            excel_file_name = f'{custom_name if custom_name else "search_results_" + now_str}.xlsx'
 
             results.to_excel(excel_file_name, index=False)  # save the results to an Excel file
 
             try:
                 # run database.py after the search results are generated
-                subprocess.run(['python', 'database.py', excel_file_name], check=True)
+                subprocess.run(['python', 'database.py', excel_file_name, custom_name if custom_name else ''], check=True)
             except Exception as e:
                 flash(f'Error running database script: {str(e)}')
 
