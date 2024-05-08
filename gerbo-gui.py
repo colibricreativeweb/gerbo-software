@@ -80,11 +80,11 @@ def search_files():
                         if term == "$all":
                             results = pd.concat([results, df])
                         else:
-                            results = pd.concat([results, df[df.apply(lambda row: row.astype(str).str.contains(term).any(), axis=1)]])
+                            results = pd.concat([results, df[df.apply(lambda row: row.astype(str).str.contains(term, case=False).any(), axis=1)]])
                     # If the exclude words field is not empty, remove the rows that contain any of the exclude words
                     if exclude_words:
                         for word in exclude_words:
-                            results = results[~results.apply(lambda row: row.astype(str).str.contains(word).any(), axis=1)]
+                            results = results[~results.apply(lambda row: row.astype(str).str.contains(word, case=False).any(), axis=1)]
                 except Exception as e:
                     flash(f'Error processing file {filename}: {str(e)}')
                     continue
@@ -154,7 +154,7 @@ def index():
 
 
         results_list = []
-        for i in range(1, 21, 10):
+        for i in range(1, 101, 10):
             params['start'] = i
             try:
                 response = requests.get(base_url, params=params)

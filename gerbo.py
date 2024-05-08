@@ -36,7 +36,7 @@ params = {
 }
 
 # Make multiple requests to the API to get the first 100 results
-for i in range(1, 11, 10):
+for i in range(1, 101, 10):
     params['start'] = i
     try:
         response = requests.get(base_url, params=params)
