@@ -9,9 +9,8 @@ from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
 import pandas as pd
 import os
-import database
 import subprocess
-from datetime import datetime
+import numpy as np
 
 load_dotenv()  # load environment variables
 
@@ -36,7 +35,26 @@ def upload_files():
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                 filenames.append(filename)
-                df = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], filename), nrows=0)  # read only the first row
+                df = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], filename))  # read the entire file
+
+                # Normalize column names to have the first letter uppercase and the rest lowercase
+                df.columns = df.columns.str.capitalize()
+
+                # Combine duplicate columns
+                df = df.groupby(df.columns, axis=1).sum()
+
+                # Ignore if the redundant cols are empty
+                df = df.loc[:, (df != '').any(axis=0)]
+
+                # Check if there are still any duplicate or empty columns
+                if df.columns.duplicated().any():
+                    print(f"Warning: There are still duplicate columns in {filename}")
+                if df.isnull().all().any():
+                    print(f"Warning: There are still empty columns in {filename}")
+
+                # Save the modified DataFrame back to the original file
+                df.to_excel(os.path.join(app.config['UPLOAD_FOLDER'], filename), index=False)
+
                 cols.update(df.columns.tolist())  # use the update method to add the columns to the set
         session['cols'] = list(cols)  # convert the set back to a list before storing it in the session
         return redirect(url_for('search_files', filenames=','.join(filenames)))
@@ -96,7 +114,7 @@ def search_files():
             now_str = now.strftime('%Y%m%d%H%M%S')
 
             # Use the custom name if provided, else use the current date and time as the Excel file name
-            excel_file_name = f'{custom_name if custom_name else "search_results_" + now_str}.xlsx'
+            excel_file_name = os.path.join('databases', f'{custom_name if custom_name else "search_results_" + now_str}.xlsx')
 
             results.to_excel(excel_file_name, index=False)  # save the results to an Excel file
 
