@@ -11,6 +11,8 @@ import pandas as pd
 import os
 import subprocess
 import numpy as np
+import PyPDF2
+import re
 
 load_dotenv()  # load environment variables
 
@@ -59,6 +61,56 @@ def upload_files():
         session['cols'] = list(cols)  # convert the set back to a list before storing it in the session
         return redirect(url_for('search_files', filenames=','.join(filenames)))
     return render_template('upload.html')
+
+def extract_emails(filename):
+    pdf_file_obj = open(filename, 'rb')
+    pdf_reader = PyPDF2.PdfFileReader(pdf_file_obj)
+    num_pages = pdf_reader.numPages
+    email_list = []
+    for i in range(num_pages):
+        page_obj = pdf_reader.getPage(i)
+        try:
+            text = page_obj.extract_text()
+        except KeyError:
+            print(f"No text content in page {i}")
+            continue
+        # Improved regex to match a wider range of email formats
+        email_matches = re.findall(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", text)
+        for email_match in email_matches:
+            email = email_match.replace('\n', '').strip()
+            name = None
+            title = None
+            preceding_text = text[:text.find(email)].strip().split('/')
+            if len(preceding_text) >= 2:
+                name = preceding_text[-2].strip()
+                title = preceding_text[-1].strip()
+            elif len(preceding_text) == 1:
+                name = preceding_text[0].strip()
+            email_list.append({'name': name, 'title': title, 'email': email})
+    pdf_file_obj.close()
+    return email_list
+
+@app.route('/upload_pdf', methods=['GET', 'POST'])
+def upload_pdf(show_names=True):
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+        file = request.files['file']
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+        if file:
+            filename = secure_filename(file.filename)
+            pdf_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'pdfs')
+            if not os.path.exists(pdf_folder):
+                os.makedirs(pdf_folder)
+            file.save(os.path.join(pdf_folder, filename))
+            emails = extract_emails(os.path.join(pdf_folder, filename))
+            email_count = len(emails)
+            return render_template('pdf_results.html', emails=emails, email_count=email_count)
+    # If it's a GET request or the POST request was not successful, render the upload form
+    return render_template('upload_pdf.html')
 
 @app.route('/search', methods=['GET', 'POST'])
 def search_files():
@@ -144,7 +196,8 @@ def index():
         """ fileType = request.form.get('fileType') """
         country = request.form.get('country')
 
-        filename = re.sub('[^A-Za-z0-9]+', '_', search_term)
+        # Store the original search term for display
+        display_search_term = search_term
 
         search_term += " -site:reddit.com -site:wikipedia.org -site:.gov"
         if exclude_sites:
@@ -167,12 +220,11 @@ def index():
         if country:
             params['gl'] = country
             
-            # Print the parameters (DELETE AFTER USE)
+        # Print the parameters (DELETE AFTER USE)
         print(f"Sending the following parameters to the API: {params}")
 
-
         results_list = []
-        for i in range(1, 101, 10):
+        for i in range(1, 21, 10):
             params['start'] = i
             try:
                 response = requests.get(base_url, params=params)
@@ -206,7 +258,7 @@ def index():
                 'phones': phones
             })
 
-        return render_template('results.html', contact_info=contact_info, year=datetime.now().year)
+        return render_template('results.html', contact_info=contact_info, year=datetime.now().year, search_term=display_search_term)
 
     return render_template('index.html', year=datetime.now().year)
 

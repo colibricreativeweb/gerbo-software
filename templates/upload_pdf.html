@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Gerbo | In-PDF Search</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap" rel="stylesheet" />
+  </head>
+  <body class="bg-gray-200 min-h-screen flex items-center justify-center" data-aos="fade-in">
+    <div class="bg-white p-10 rounded-lg shadow-xl w-11/12 sm:w-1/2" data-aos="fade-up">
+      <a href="{{ url_for('index') }}">
+        <img src="{{ url_for('static', filename='images/gerbo.png') }}" alt="Gerbo Logo" class="mx-auto mb-1 h-24 w-auto rounded-full" />
+        <p class="flex mb-3 items-center font-gerbo font-bold text-blue-700 justify-center">Gerbo</p>
+      </a>
+      <h1 class="text-3xl mb-5 text-center text-blue-600">In-PDF Search</h1>
+      <form method="POST" enctype="multipart/form-data" class="space-y-5" id="searchForm">
+        <div class="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md" id="drop-zone">
+          <div class="space-y-1 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+              <path d="M28.3 16H19.7a1 1 0 00-1 1v4a1 1 0 001 1h8.6a1 1 0 001-1v-4a1 1 0 00-1-1z" />
+              <path fill="#fff" d="M24 30c-4 0-7-3-7-7h4a3 3 0 006 0h4c0 4-3 7-7 7z" />
+            </svg>
+            <div class="flex text-sm text-gray-600">
+              <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                <span id="file-label">Upload a file</span>
+                <input id="file-upload" name="file" type="file" class="sr-only" required>
+              </label>
+              <p class="pl-1">or drag and drop</p>
+            </div>
+            <p class="text-xs text-gray-500">PDF up to 10MB</p>
+          </div>
+        </div>
+        <input id="submitButton" class="w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" type="submit" value="Upload" />
+      </form>
+      {% include 'footer.html' %}
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.1/dist/aos.js"></script>
+    <script>
+      AOS.init();
+      document.getElementById("searchForm").addEventListener("submit", function () {
+        var submitButton = document.getElementById("submitButton");
+        submitButton.disabled = true;
+        submitButton.value = "Loading...";
+        submitButton.innerHTML = "⚡" + submitButton.value;
+      });
+
+      // Drag and drop functionality
+      var dropZone = document.getElementById('drop-zone');
+      var fileInput = document.getElementById('file-upload');
+      var fileLabel = document.getElementById('file-label');
+
+      dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.style.backgroundColor = '#999';
+      });
+
+      dropZone.addEventListener('dragleave', function(e) {
+        this.style.backgroundColor = 'transparent';
+      });
+
+      dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.style.backgroundColor = 'transparent';
+        fileInput.files = e.dataTransfer.files;
+        fileLabel.innerText = e.dataTransfer.files[0].name;
+      });
+
+      fileInput.addEventListener('change', function(e) {
+        fileLabel.innerText = e.target.files[0].name;
+      });
+    </script>
+  </body>
+</html>

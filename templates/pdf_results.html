@@ -18,7 +18,6 @@
       </p>
     </a>
     <h1 class="text-3xl mb-5 text-center text-blue-600">Results</h1>
-    <p class="text-xl mb-5 text-center font-normal text-gray-700 border border-gray-300 p-3 rounded-lg italic">"<span class="font-bold">{{ search_term }}</span>"</p>
     <div class="flex mb-0 sm:mb-1 flex-wrap md:flex-nowrap space-x-0 md:space-x-2">
       <!-- Export Button -->
       <button id="exportButton"
@@ -56,25 +55,22 @@
       </a>
     </div>
     <ul class="space-y-5">
-      {% for info in contact_info %}
       <li class="p-5 border border-gray-200 rounded-lg">
-        <h2 class="text-2xl text-blue-600">
-          <a href="{{ info.website }}" target="_blank" class="overflow-auto break-all">{{ info.website }}</a>
-        </h2>
-        <h3 class="text-xl mt-3 text-gray-700">Emails:</h3>
+        <h3 class="text-xl text-gray-700">Total: {{ email_count }}</h3>
         <ul class="list-disc list-inside">
-          {% for email in info.emails %}
-          <li class="text-gray-600">{{ email }}</li>
-          {% endfor %}
-        </ul>
-        <h3 class="text-xl mt-3 text-gray-700">Phones:</h3>
-        <ul class="list-disc list-inside">
-          {% for phone in info.phones %}
-          <li class="text-gray-600">{{ phone }}</li>
+          {% for email in emails %}
+          <li class="text-gray-600">
+            {% if email.name %}
+            <span class="font-bold">{{ email.name }}:</span>
+            {% endif %}
+            {% if email.title %}
+            <span class="font-bold">{{ email.title }}:</span>
+            {% endif %}
+            {{ email.email }}
+          </li>
           {% endfor %}
         </ul>
       </li>
-      {% endfor %}
     </ul>
     {% include 'footer.html' %}
   </div>
@@ -84,38 +80,19 @@
   </script>
   <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
   <script>
-    function exportToExcel() {
+    document.getElementById('exportButton').addEventListener('click', function() {
       var wb = XLSX.utils.book_new();
-      var ws_data = [];
-
-      // Get the data from the page
-      var contact_info = document.querySelectorAll("ul.space-y-5 > li");
-      contact_info.forEach(function (info) {
-        var website = info.querySelector("h2 > a").textContent;
-        var emails = Array.from(
-          info
-            .querySelectorAll("ul.list-disc.list-inside")[0]
-            .querySelectorAll("li")
-        ).map((li) => li.textContent);
-        var phones = Array.from(
-          info
-            .querySelectorAll("ul.list-disc.list-inside")[1]
-            .querySelectorAll("li")
-        ).map((li) => li.textContent);
-
-        // Add the data to the worksheet
-        ws_data.push([website].concat(emails).concat(phones));
-      });
-
+      var ws_name = "SheetJS";
+      var ws_data = [['name', 'title', 'email']];
+      var emails = {{ emails|tojson|safe }};
+      for (var i = 0; i < emails.length; i++) {
+        ws_data.push([emails[i].name, emails[i].title, emails[i].email]);
+      }
       var ws = XLSX.utils.aoa_to_sheet(ws_data);
-      XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-      XLSX.writeFile(wb, "results.xlsx");
-    }
-
-    document
-      .getElementById("exportButton")
-      .addEventListener("click", exportToExcel);
-  </script>
+      XLSX.utils.book_append_sheet(wb, ws, ws_name);
+      XLSX.writeFile(wb, 'pdf_exp.xlsx');
+    });
+</script>
 </body>
 
 </html>
