@@ -8,3 +8,5 @@ openpyxl
 flask_session
 werkzeug
 Jinja2
+numpy
+PyPDF2
