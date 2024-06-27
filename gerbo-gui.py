@@ -12,6 +12,7 @@ import os
 import subprocess
 import numpy as np
 import PyPDF2
+from pdfminer.high_level import extract_text
 import re
 
 load_dotenv()  # load environment variables
@@ -63,52 +64,57 @@ def upload_files():
     return render_template('upload.html')
 
 def extract_emails(filename):
-    pdf_file_obj = open(filename, 'rb')
-    pdf_reader = PyPDF2.PdfFileReader(pdf_file_obj)
-    num_pages = pdf_reader.numPages
     email_list = []
-    for i in range(num_pages):
-        page_obj = pdf_reader.getPage(i)
-        try:
-            text = page_obj.extract_text()
-        except KeyError:
-            print(f"No text content in page {i}")
-            continue
-        # Improved regex to match a wider range of email formats
-        email_matches = re.findall(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", text)
-        for email_match in email_matches:
-            email = email_match.replace('\n', '').strip()
-            name = None
-            title = None
-            preceding_text = text[:text.find(email)].strip().split('/')
-            if len(preceding_text) >= 2:
-                name = preceding_text[-2].strip()
-                title = preceding_text[-1].strip()
-            elif len(preceding_text) == 1:
-                name = preceding_text[0].strip()
-            email_list.append({'name': name, 'title': title, 'email': email})
-    pdf_file_obj.close()
+    # Start with PyPDF2 for basic extraction
+    try:
+        pdf_file_obj = open(filename, 'rb')
+        pdf_reader = PyPDF2.PdfFileReader(pdf_file_obj)
+        text = ''
+        for i in range(pdf_reader.numPages):
+            page_obj = pdf_reader.getPage(i)
+            text += page_obj.extractText()
+        if not text:
+            raise ValueError("No text extracted with PyPDF2; trying PDFMiner.")
+        print("Text extracted with PyPDF2.")
+    except Exception as e:
+        print(e)
+        # Fallback to PDFMiner for complex PDFs
+        text = extract_text(filename)
+        print("Text extracted with PDFMiner.")
+
+    # Use regex to find all emails in the text
+    email_matches = re.findall(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", text)
+    for email in set(email_matches):  # Use set to remove duplicates
+        email = email.replace('\n', '').strip()
+        email_list.append({'email': email})
+
+    if pdf_file_obj:
+        pdf_file_obj.close()
     return email_list
 
 @app.route('/upload_pdf', methods=['GET', 'POST'])
-def upload_pdf(show_names=True):
+def upload_pdf():
     if request.method == 'POST':
-        if 'file' not in request.files:
-            flash('No file part')
+        files = request.files.getlist('file')  # Get list of files
+        if not files or files[0].filename == '':
+            flash('No selected files')
             return redirect(request.url)
-        file = request.files['file']
-        if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
-        if file:
-            filename = secure_filename(file.filename)
-            pdf_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'pdfs')
-            if not os.path.exists(pdf_folder):
-                os.makedirs(pdf_folder)
-            file.save(os.path.join(pdf_folder, filename))
-            emails = extract_emails(os.path.join(pdf_folder, filename))
-            email_count = len(emails)
-            return render_template('pdf_results.html', emails=emails, email_count=email_count)
+        
+        all_emails = []  # List to hold emails from all PDFs
+        pdf_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'pdfs')
+        if not os.path.exists(pdf_folder):
+            os.makedirs(pdf_folder)
+        
+        for file in files:
+            if file:  # Check if file exists
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(pdf_folder, filename)
+                file.save(file_path)
+                emails = extract_emails(file_path)
+                all_emails.extend(emails)  # Add emails from current PDF to the list
+        
+        email_count = len(all_emails)
+        return render_template('pdf_results.html', emails=all_emails, email_count=email_count)
     # If it's a GET request or the POST request was not successful, render the upload form
     return render_template('upload_pdf.html')
 

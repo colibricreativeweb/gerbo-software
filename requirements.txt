@@ -10,3 +10,4 @@ werkzeug
 Jinja2
 numpy
 PyPDF2
+pdfminer.six
