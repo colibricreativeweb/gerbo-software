@@ -72,7 +72,7 @@ def extract_emails(filename):
         text = ''
         for i in range(pdf_reader.numPages):
             page_obj = pdf_reader.getPage(i)
-            text += page_obj.extractText()
+            text += page_obj.extract_text()
         if not text:
             raise ValueError("No text extracted with PyPDF2; trying PDFMiner.")
         print("Text extracted with PyPDF2.")
@@ -101,7 +101,7 @@ def upload_pdf():
             return redirect(request.url)
         
         all_emails = []  # List to hold emails from all PDFs
-        pdf_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'pdfs')
+        pdf_folder = 'pdfs'
         if not os.path.exists(pdf_folder):
             os.makedirs(pdf_folder)
         

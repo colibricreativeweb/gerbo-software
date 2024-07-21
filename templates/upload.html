@@ -52,17 +52,45 @@
         class="space-y-5"
         id="searchForm"
       >
-        <div>
-          <label class="block text-sm font-medium text-gray-700" for="files[]"
-            >Select files</label
-          >
-          <input
-            class="mt-1 block w-full rounded-md border-2 border-blue-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-            type="file"
-            name="files[]"
-            multiple
-            required
-          />
+        <div
+          class="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md"
+          id="drop-zone"
+        >
+          <div class="space-y-1 text-center">
+            <svg
+              class="mx-auto h-12 w-12 text-gray-400"
+              stroke="currentColor"
+              fill="none"
+              viewBox="0 0 48 48"
+              aria-hidden="true"
+            >
+              <path
+                d="M28.3 16H19.7a1 1 0 00-1 1v4a1 1 0 001 1h8.6a1 1 0 001-1v-4a1 1 0 00-1-1z"
+              />
+              <path
+                fill="#fff"
+                d="M24 30c-4 0-7-3-7-7h4a3 3 0 006 0h4c0 4-3 7-7 7z"
+              />
+            </svg>
+            <div class="flex text-sm text-gray-600">
+              <label
+                for="file-upload"
+                class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+              >
+                <span id="file-label">Upload files</span>
+                <input
+                  id="file-upload"
+                  name="files[]"
+                  type="file"
+                  class="sr-only"
+                  multiple
+                  required
+                />
+              </label>
+              <p class="pl-1">or drag and drop</p>
+            </div>
+            <p class="text-xs text-gray-500">PDFs up to 10MB each</p>
+          </div>
         </div>
         <input
           id="submitButton"
@@ -84,6 +112,39 @@
           submitButton.value = "Loading...";
           submitButton.innerHTML = "⚡" + submitButton.value;
         });
+
+      // Drag and drop functionality
+      var dropZone = document.getElementById("drop-zone");
+      var fileInput = document.getElementById("file-upload");
+      var fileLabel = document.getElementById("file-label");
+
+      dropZone.addEventListener("dragover", function (e) {
+        e.preventDefault();
+        this.style.backgroundColor = "#999";
+      });
+
+      dropZone.addEventListener("dragleave", function (e) {
+        this.style.backgroundColor = "transparent";
+      });
+
+      dropZone.addEventListener("drop", function (e) {
+        e.preventDefault();
+        this.style.backgroundColor = "transparent";
+        fileInput.files = e.dataTransfer.files;
+        // Update to handle multiple file names
+        var fileNames = Array.from(e.dataTransfer.files)
+          .map((file) => file.name)
+          .join(", ");
+        fileLabel.innerText = fileNames;
+      });
+
+      fileInput.addEventListener("change", function (e) {
+        // Update to handle multiple file names
+        var fileNames = Array.from(e.target.files)
+          .map((file) => file.name)
+          .join(", ");
+        fileLabel.innerText = fileNames;
+      });
     </script>
   </body>
 </html>
