@@ -38,85 +38,11 @@ def upload_files():
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                 filenames.append(filename)
-                df = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], filename))  # read the entire file
-
-                # Normalize column names to have the first letter uppercase and the rest lowercase
-                df.columns = df.columns.str.capitalize()
-
-                # Combine duplicate columns
-                df = df.groupby(df.columns, axis=1).sum()
-
-                # Ignore if the redundant cols are empty
-                df = df.loc[:, (df != '').any(axis=0)]
-
-                # Check if there are still any duplicate or empty columns
-                if df.columns.duplicated().any():
-                    print(f"Warning: There are still duplicate columns in {filename}")
-                if df.isnull().all().any():
-                    print(f"Warning: There are still empty columns in {filename}")
-
-                # Save the modified DataFrame back to the original file
-                df.to_excel(os.path.join(app.config['UPLOAD_FOLDER'], filename), index=False)
-
+                df = pd.read_excel(os.path.join(app.config['UPLOAD_FOLDER'], filename), nrows=0)  # read only the first row
                 cols.update(df.columns.tolist())  # use the update method to add the columns to the set
         session['cols'] = list(cols)  # convert the set back to a list before storing it in the session
         return redirect(url_for('search_files', filenames=','.join(filenames)))
     return render_template('upload.html')
-
-def extract_emails(filename):
-    email_list = []
-    # Start with PyPDF2 for basic extraction
-    try:
-        pdf_file_obj = open(filename, 'rb')
-        pdf_reader = PyPDF2.PdfFileReader(pdf_file_obj)
-        text = ''
-        for i in range(pdf_reader.numPages):
-            page_obj = pdf_reader.getPage(i)
-            text += page_obj.extract_text()
-        if not text:
-            raise ValueError("No text extracted with PyPDF2; trying PDFMiner.")
-        print("Text extracted with PyPDF2.")
-    except Exception as e:
-        print(e)
-        # Fallback to PDFMiner for complex PDFs
-        text = extract_text(filename)
-        print("Text extracted with PDFMiner.")
-
-    # Use regex to find all emails in the text
-    email_matches = re.findall(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", text)
-    for email in set(email_matches):  # Use set to remove duplicates
-        email = email.replace('\n', '').strip()
-        email_list.append({'email': email})
-
-    if pdf_file_obj:
-        pdf_file_obj.close()
-    return email_list
-
-@app.route('/upload_pdf', methods=['GET', 'POST'])
-def upload_pdf():
-    if request.method == 'POST':
-        files = request.files.getlist('file')  # Get list of files
-        if not files or files[0].filename == '':
-            flash('No selected files')
-            return redirect(request.url)
-        
-        all_emails = []  # List to hold emails from all PDFs
-        pdf_folder = 'pdfs'
-        if not os.path.exists(pdf_folder):
-            os.makedirs(pdf_folder)
-        
-        for file in files:
-            if file:  # Check if file exists
-                filename = secure_filename(file.filename)
-                file_path = os.path.join(pdf_folder, filename)
-                file.save(file_path)
-                emails = extract_emails(file_path)
-                all_emails.extend(emails)  # Add emails from current PDF to the list
-        
-        email_count = len(all_emails)
-        return render_template('pdf_results.html', emails=all_emails, email_count=email_count)
-    # If it's a GET request or the POST request was not successful, render the upload form
-    return render_template('upload_pdf.html')
 
 @app.route('/search', methods=['GET', 'POST'])
 def search_files():
@@ -172,7 +98,7 @@ def search_files():
             now_str = now.strftime('%Y%m%d%H%M%S')
 
             # Use the custom name if provided, else use the current date and time as the Excel file name
-            excel_file_name = os.path.join('databases', f'{custom_name if custom_name else "search_results_" + now_str}.xlsx')
+            excel_file_name = f'{custom_name if custom_name else "search_results_" + now_str}.xlsx'
 
             results.to_excel(excel_file_name, index=False)  # save the results to an Excel file
 
@@ -190,6 +116,61 @@ def search_files():
     except Exception as e:
         flash(f'Error: {str(e)}')
         return redirect(url_for('index'))
+
+def extract_emails(filename):
+    email_list = []
+    # Start with PyPDF2 for basic extraction
+    try:
+        pdf_file_obj = open(filename, 'rb')
+        pdf_reader = PyPDF2.PdfFileReader(pdf_file_obj)
+        text = ''
+        for i in range(pdf_reader.numPages):
+            page_obj = pdf_reader.getPage(i)
+            text += page_obj.extract_text()
+        if not text:
+            raise ValueError("No text extracted with PyPDF2; trying PDFMiner.")
+        print("Text extracted with PyPDF2.")
+    except Exception as e:
+        print(e)
+        # Fallback to PDFMiner for complex PDFs
+        text = extract_text(filename)
+        print("Text extracted with PDFMiner.")
+
+    # Use regex to find all emails in the text
+    email_matches = re.findall(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", text)
+    for email in set(email_matches):  # Use set to remove duplicates
+        email = email.replace('\n', '').strip()
+        email_list.append({'email': email})
+
+    if pdf_file_obj:
+        pdf_file_obj.close()
+    return email_list
+
+@app.route('/upload_pdf', methods=['GET', 'POST'])
+def upload_pdf():
+    if request.method == 'POST':
+        files = request.files.getlist('file')  # Get list of files
+        if not files or files[0].filename == '':
+            flash('No selected files')
+            return redirect(request.url)
+        
+        all_emails = []  # List to hold emails from all PDFs
+        pdf_folder = 'pdfs'
+        if not os.path.exists(pdf_folder):
+            os.makedirs(pdf_folder)
+        
+        for file in files:
+            if file:  # Check if file exists
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(pdf_folder, filename)
+                file.save(file_path)
+                emails = extract_emails(file_path)
+                all_emails.extend(emails)  # Add emails from current PDF to the list
+        
+        email_count = len(all_emails)
+        return render_template('pdf_results.html', emails=all_emails, email_count=email_count)
+    # If it's a GET request or the POST request was not successful, render the upload form
+    return render_template('upload_pdf.html')
 
 @app.route('/', methods=['GET', 'POST'])
 def index():

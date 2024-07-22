@@ -41,6 +41,7 @@ package-lock.json
 .env.production
 /public/page-data/sq
 /dev-dist
+/databases/*
 /excels/*
 /pdfs/*
 

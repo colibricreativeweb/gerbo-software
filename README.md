@@ -4,15 +4,7 @@ Are you tired of manual data mining tasks? Look no further! Our project provides
 
 ## :gear: Install & Run
 
-Just fire up `gerbo.py` if you wanna run on CLI or run `gerbo-gui.py` if you wanna use the shiny Flask version.
-
-### CLI
-
-```bash
-python gerbo.py
-```
-
-### Flask (GUI)
+Just fire up `gerbo-gui.py` to use the fully-featured GUI on your favorite browser.
 
 ```bash
 python gerbo-gui.py

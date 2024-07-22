@@ -1,11 +1,11 @@
 # database.py
+import sqlite3
 import os
-import sys
 import pandas as pd
 import datetime
-from sqlalchemy import create_engine
+import sys
 
-def process_data(excel_files, database_name=None):
+def process_data(excel_file, database_name=None):
     try:
         # Ensure the 'databases' directory exists, if not, create it
         if not os.path.exists('databases'):
@@ -22,44 +22,55 @@ def process_data(excel_files, database_name=None):
             # Use the current date and time as the database name
             database_name = f'database_{now_str}'
 
-        # Initialize an empty DataFrame to store all data
-        all_data = pd.DataFrame()
+        # Connect to the database (it will be created if it doesn't exist)
+        conn = sqlite3.connect(f'databases/{database_name}.db')
 
-        # Process each Excel file
-        for excel_file in excel_files:
-            # Load the data from the Excel file
-            data = pd.read_excel(excel_file)
+        # Create a cursor object
+        cursor = conn.cursor()
 
-            # Replace colons in column names with underscore
-            data.columns = data.columns.str.replace(':', '_')
+        # Load the data from the Excel file
+        data = pd.read_excel(excel_file)
 
-            # Append the data to the all_data DataFrame
-            all_data = pd.concat([all_data, data], ignore_index=True)
+        # Replace colons in column names with underscore
+        data.columns = data.columns.str.replace(':', '_')
 
-        # Create a SQLAlchemy engine
-        engine = create_engine(f'sqlite:///databases/{database_name}.db')
+        # Get the column names from the DataFrame
+        cols = data.columns.tolist()
 
-        # Save the DataFrame to a SQLite database
-        if not all_data.empty:
-            all_data.to_sql('data', engine, index=False, if_exists='replace')
-        else:
-            print("Warning: The DataFrame is empty. No data was written to the database.")
+        # Remove 'Unnamed: 0' from the column names if it exists
+        cols = [col for col in cols if col != 'Unnamed: 0']
 
-        # Print debug information
-        print(f"Processed {len(excel_files)} Excel files.")
-        print(f"Inserted {len(all_data)} rows into the database.")
-        print(f"Database saved as 'databases/{database_name}.db'.")
+        # Create a table with the same structure as the data
+        cols_str = ', '.join([f'"{col}" TEXT' for col in cols])  # quote the column names
+        cursor.execute(f'''
+            CREATE TABLE IF NOT EXISTS demo(
+                id INTEGER PRIMARY KEY,
+                {cols_str}
+            )
+        ''')
+
+        # Convert the data to a list of tuples
+        data_tuples = list(data.itertuples(index=False, name=None))
+
+        # Insert the data into the table
+        placeholders = ', '.join(['?' for _ in cols])
+        cols_str = ', '.join([f'"{col}"' for col in cols])  # quote the column names
+        cursor.executemany(f"INSERT INTO demo ({cols_str}) VALUES ({placeholders})", data_tuples)
+
+        # Commit the transaction and close the connection
+        conn.commit()
+        conn.close()
 
     except Exception as e:
         print(f"An error occurred while processing the data: {e}")
 
 if __name__ == "__main__":
     if len(sys.argv) > 2:  # check if two command-line arguments were provided
-        excel_files = sys.argv[1:-1]  # use all but the last command-line argument as the Excel files to process
-        database_name = sys.argv[-1]  # use the last command-line argument as the database name
-        process_data(excel_files, database_name)
+        excel_file = sys.argv[1]  # use the first command-line argument as the Excel file to process
+        database_name = sys.argv[2]  # use the second command-line argument as the database name
+        process_data(excel_file, database_name)
     elif len(sys.argv) > 1:  # check if a command-line argument was provided
-        excel_files = sys.argv[1:]  # use all command-line arguments as the Excel files to process
-        process_data(excel_files)
+        excel_file = sys.argv[1]  # use the first command-line argument as the Excel file to process
+        process_data(excel_file)
     else:
-        print("No Excel files provided.")
+        print("No Excel file provided.")
